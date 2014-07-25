@@ -125,10 +125,10 @@ private:
   int m_index;
 };
 
-class gcc_stmt_iter_impl : public ir::stmt_iter::impl
+class gimple_iter_impl : public ir::stmt_iter::impl
 {
 public:
-  gcc_stmt_iter_impl (gimple stmt);
+  gimple_iter_impl (gimple stmt);
 
   void unref ();
   bool is_done () const;
@@ -270,7 +270,7 @@ gcc_block_impl::iter_phis ()
   struct gimple_bb_info *info;
   info = checked_get_gimple_info (m_inner);
 
-  return ir::stmt_iter (new gcc_stmt_iter_impl (info->phi_nodes));
+  return ir::stmt_iter (new gimple_iter_impl (info->phi_nodes));
 }
 
 ir::stmt_iter
@@ -279,37 +279,37 @@ gcc_block_impl::iter_stmts ()
   struct gimple_bb_info *info;
   info = checked_get_gimple_info (m_inner);
 
-  return ir::stmt_iter (new gcc_stmt_iter_impl (info->seq));
+  return ir::stmt_iter (new gimple_iter_impl (info->seq));
 }
 
-// class gcc_stmt_iter_impl : public ir::stmt_iter::impl
+// class gimple_iter_impl : public ir::stmt_iter::impl
 
-gcc_stmt_iter_impl::gcc_stmt_iter_impl (gimple stmt)
+gimple_iter_impl::gimple_iter_impl (gimple stmt)
 {
   m_gsi = gsi_start (stmt);
 }
 
 void
-gcc_stmt_iter_impl::unref ()
+gimple_iter_impl::unref ()
 {
   delete this;
 }
 
 bool
-gcc_stmt_iter_impl::is_done () const
+gimple_iter_impl::is_done () const
 {
   return gsi_end_p (m_gsi);
 }
 
 ir::stmt
-gcc_stmt_iter_impl::get_stmt () const
+gimple_iter_impl::get_stmt () const
 {
   gimple stmt = gsi_stmt (m_gsi);
   return ir::stmt (new gimple_stmt_impl (stmt));
 }
 
 void
-gcc_stmt_iter_impl::next ()
+gimple_iter_impl::next ()
 {
   gsi_next (&m_gsi);
 }
