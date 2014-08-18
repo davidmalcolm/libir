@@ -32,10 +32,10 @@ LIBIR_OBJECT_FILES := $(patsubst %.cc,%.o,$(LIBIR_CC_FILES))
 LIBIR_GCC_PLUGIN_OBJECT_FILES := $(patsubst %.cc,%.o,$(LIBIR_GCC_PLUGIN_CC_FILES))
 
 $(LIBIR_SO): $(LIBIR_OBJECT_FILES)
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -shared $^ -o $@ $(LIBS)
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -shared $^ -o $@ $(LIBS) -lstdc++
 
 $(LIBIR_GCC_PLUGIN_SO): $(LIBIR_GCC_PLUGIN_OBJECT_FILES)
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -shared $^ -o $@ $(LIBS)
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -shared $^ -o $@ $(LIBS) -lstdc++
 
 test-plugin.so: test-plugin.cc libir.h $(LIBIR_SO) $(LIBIR_GCC_PLUGIN_SO)
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -shared test-plugin.cc -o $@ $(LIBS) -lir -lir-gcc-plugin -L.
