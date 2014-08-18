@@ -44,4 +44,4 @@ clean:
 	rm *.so *.o
 
 run-test-plugin: test-plugin.so
-	LD_LIBRARY_PATH=. gcc -c -fplugin=/home/david/coding/gcc-python/libir/test-plugin.so test.c
+	LD_LIBRARY_PATH=. gcc -c -fplugin=./test-plugin.so test.c
