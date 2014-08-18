@@ -270,6 +270,9 @@ gcc_block_impl::iter_phis ()
   struct gimple_bb_info *info;
   info = checked_get_gimple_info (m_inner);
 
+  if (!info)
+    return ir::stmt_iter (ir::null_stmt_iter_impl::get());
+
   return ir::stmt_iter (new gimple_iter_impl (info->phi_nodes));
 }
 
@@ -278,6 +281,9 @@ gcc_block_impl::iter_stmts ()
 {
   struct gimple_bb_info *info;
   info = checked_get_gimple_info (m_inner);
+
+  if (!info)
+    return ir::stmt_iter (ir::null_stmt_iter_impl::get());
 
   return ir::stmt_iter (new gimple_iter_impl (info->seq));
 }

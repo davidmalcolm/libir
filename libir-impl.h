@@ -82,6 +82,20 @@ public:
   virtual void next () = 0;
 };
 
+class null_stmt_iter_impl : public stmt_iter::impl
+{
+public:
+  static null_stmt_iter_impl *get() {return &s_singleton; }
+
+  void unref () { /* empty; a singleton.  */ }
+  bool is_done () const { return true; }
+  ir::stmt get_stmt () const { return 0; }
+  void next () { /* empty */ }
+
+private:
+  static null_stmt_iter_impl s_singleton;
+};
+
 } // namespace ir
 
 #endif // #ifndef INCLUDED_LIBIR_IMPL_H

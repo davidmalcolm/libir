@@ -128,4 +128,6 @@ stmt::~stmt ()
   m_pimpl->unref ();
 }
 
+null_stmt_iter_impl null_stmt_iter_impl::s_singleton;
+
 } // namespace ir
