@@ -128,7 +128,7 @@ private:
 class gimple_iter_impl : public ir::stmt_iter::impl
 {
 public:
-  gimple_iter_impl (gimple stmt);
+  gimple_iter_impl (gimple_seq seq);
 
   void unref ();
   bool is_done () const;
@@ -284,9 +284,9 @@ gcc_block_impl::iter_stmts ()
 
 // class gimple_iter_impl : public ir::stmt_iter::impl
 
-gimple_iter_impl::gimple_iter_impl (gimple stmt)
+gimple_iter_impl::gimple_iter_impl (gimple_seq seq)
 {
-  m_gsi = gsi_start (stmt);
+  m_gsi = gsi_start (seq);
 }
 
 void
