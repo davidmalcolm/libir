@@ -23,7 +23,7 @@ CPPFLAGS+= -I$(GCCPLUGINS_DIR)/include -I$(GCCPLUGINS_DIR)/include/c-family -I.
 CFLAGS+= -fPIC -g
 CXXFLAGS+= -fPIC -g
 
-all: run-test-plugin $(LIBIR_SO) $(LIBIR_GCC_PLUGIN_SO) test-plugin.so
+all: run-test-plugin.cc $(LIBIR_SO) $(LIBIR_GCC_PLUGIN_SO) test-plugin.cc.so
 
 LIBIR_CC_FILES := libir.cc
 LIBIR_GCC_PLUGIN_CC_FILES := libir-gcc-plugin.cc
@@ -37,15 +37,18 @@ $(LIBIR_SO): $(LIBIR_OBJECT_FILES)
 $(LIBIR_GCC_PLUGIN_SO): $(LIBIR_GCC_PLUGIN_OBJECT_FILES)
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -shared $^ -o $@ $(LIBS) -lstdc++
 
-test-plugin.so: test-plugin.cc libir.h $(LIBIR_SO) $(LIBIR_GCC_PLUGIN_SO)
+test-plugin.cc.so: test-plugin.cc libir.h $(LIBIR_SO) $(LIBIR_GCC_PLUGIN_SO)
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -shared test-plugin.cc -o $@ $(LIBS) -lir -lir-gcc-plugin -L.
 
+.PHONY: clean
 clean:
 	rm *.so *.o
 
-run-test-plugin: test-plugin.so
-	LD_LIBRARY_PATH=. gcc -c -fplugin=./test-plugin.so test.c
+.PHONY: run-test-plugin.cc
+run-test-plugin.cc: test-plugin.cc.so
+	LD_LIBRARY_PATH=. gcc -c -fplugin=./test-plugin.cc.so test.c
 
-debug-test-plugin: test-plugin.so
-	LD_LIBRARY_PATH=. gcc -c -fplugin=./test-plugin.so test.c \
+.PHONY: debug-test-plugin.cc
+debug-test-plugin.cc: test-plugin.cc.so
+	LD_LIBRARY_PATH=. gcc -c -fplugin=./test-plugin.cc.so test.c \
 	  -wrapper gdb,--args
