@@ -1,3 +1,5 @@
+/* A simple test program for use when exercising plugins.  */
+
 int
 foo (int n)
 {
