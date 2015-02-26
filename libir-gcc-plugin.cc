@@ -110,6 +110,16 @@ private:
   gimple m_inner;
 };
 
+class rtl_stmt_impl : public ir::stmt::impl
+{
+public:
+  rtl_stmt_impl (rtx inner);
+  void unref ();
+
+private:
+  rtx m_inner;
+};
+
 class gcc_block_iter_impl : public ir::block_iter::impl
 {
 public:
@@ -119,6 +129,15 @@ public:
   bool is_done () const;
   ir::cfg::block get_block () const;
   void next ();
+
+private:
+  void ensure_nonnull_block ();
+
+  inline basic_block get_inner_bb () const {
+    return GCC_COMPAT_VEC_INDEX (basic_block,
+                                 m_inner->x_basic_block_info,
+                                 m_index);
+  }
 
 private:
   struct control_flow_graph *m_inner;
@@ -136,8 +155,21 @@ public:
   void next ();
 
 private:
-  /* FIXME: gimple vs RTL */
   gimple_stmt_iterator m_gsi;
+};
+
+class rtl_iter_impl : public ir::stmt_iter::impl
+{
+public:
+  rtl_iter_impl (rtx insn);
+
+  void unref ();
+  bool is_done () const;
+  ir::stmt get_stmt () const;
+  void next ();
+
+private:
+  rtx m_insn;
 };
 
 /* Implementations */
@@ -186,6 +218,7 @@ gcc_block_iter_impl::gcc_block_iter_impl (struct control_flow_graph *inner)
   : m_inner (inner),
     m_index (0)
 {
+  ensure_nonnull_block ();
 }
 
 void
@@ -213,6 +246,15 @@ void
 gcc_block_iter_impl::next ()
 {
   m_index++;
+  ensure_nonnull_block ();
+}
+
+void
+gcc_block_iter_impl::ensure_nonnull_block ()
+{
+  /* Skip past any leading NULLs within the table of basic blocks.  */
+  while (get_inner_bb () == NULL && m_index < m_inner->x_n_basic_blocks)
+    m_index++;
 }
 
 // class gimple_stmt_impl : public ir::stmt::impl
@@ -228,11 +270,24 @@ gimple_stmt_impl::unref ()
   delete this;
 }
 
+// class rtl_stmt_impl : public ir::stmt::impl
+rtl_stmt_impl::rtl_stmt_impl (rtx inner) :
+  m_inner (inner)
+{
+}
+
+void
+rtl_stmt_impl::unref ()
+{
+  delete this;
+}
+
 // class gcc_block_impl : public ir::cfg::block::impl
 
 gcc_block_impl::gcc_block_impl (basic_block inner) :
   m_inner (inner)
 {
+  gcc_assert (m_inner);
 }
 
 void
@@ -279,13 +334,20 @@ gcc_block_impl::iter_phis ()
 ir::stmt_iter
 gcc_block_impl::iter_stmts ()
 {
-  struct gimple_bb_info *info;
-  info = checked_get_gimple_info (m_inner);
+  if (m_inner->flags & BB_RTL)
+    {
+      return ir::stmt_iter (new rtl_iter_impl (m_inner->il.x.head_));
+    }
+  else
+    {
+      struct gimple_bb_info *info;
+      info = checked_get_gimple_info (m_inner);
 
-  if (!info)
-    return ir::stmt_iter (ir::null_stmt_iter_impl::get());
+      if (!info)
+        return ir::stmt_iter (ir::null_stmt_iter_impl::get());
 
-  return ir::stmt_iter (new gimple_iter_impl (info->seq));
+      return ir::stmt_iter (new gimple_iter_impl (info->seq));
+    }
 }
 
 // class gimple_iter_impl : public ir::stmt_iter::impl
@@ -318,6 +380,36 @@ void
 gimple_iter_impl::next ()
 {
   gsi_next (&m_gsi);
+}
+
+// class rtl_iter_impl : public ir::stmt_iter::impl
+rtl_iter_impl::rtl_iter_impl (rtx insn) :
+  m_insn (insn)
+{
+}
+
+void
+rtl_iter_impl::unref ()
+{
+  delete this;
+}
+
+bool
+rtl_iter_impl::is_done () const
+{
+  return NULL == m_insn;
+}
+
+ir::stmt
+rtl_iter_impl::get_stmt () const
+{
+  return ir::stmt (new rtl_stmt_impl (m_insn));
+}
+
+void
+rtl_iter_impl::next ()
+{
+  m_insn = NEXT_INSN (m_insn);
 }
 
 

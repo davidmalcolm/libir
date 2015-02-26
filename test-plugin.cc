@@ -77,7 +77,8 @@ callback (void *gcc_data, void *user_data)
     struct opt_pass *pass = (struct opt_pass *)gcc_data;
     printf ("callback called: %s\n", pass->name);
 
-    if (0==strcmp (pass->name, "veclower"))
+    if (0==strcmp (pass->name, "veclower")
+        || 0==strcmp (pass->name, "*rest_of_compilation"))
       {
         printf ("cfun: %x\n", cfun);
 
