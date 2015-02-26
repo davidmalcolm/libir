@@ -1,4 +1,4 @@
-/*
+/* Private header declaring the internal abstract base classes.
    Copyright 2014-2015 David Malcolm <dmalcolm@redhat.com>
    Copyright 2014-2015 Red Hat, Inc.
 
@@ -24,78 +24,75 @@
 
 #include "libir.h"
 
-namespace ir
-{
+/* Definitions of the opaque types declared in libir.h.
+   They are all abstract C++ classes.  */
 
-class function::impl
-{
-public:
-  virtual void unref () = 0;
-  virtual cfg::graph get_cfg () = 0;
-};
-
-class cfg::graph::impl
+class libir_function
 {
 public:
   virtual void unref () = 0;
-  virtual block_iter iter_blocks () = 0;
-
+  virtual libir_cfg *get_cfg () = 0;
 };
 
-class cfg::block::impl
+class libir_cfg
 {
 public:
   virtual void unref () = 0;
-  virtual stmt_iter iter_phis () = 0;
-  virtual stmt_iter iter_stmts () = 0;
+  virtual libir_cfg_block_iter *iter_blocks () = 0;
+
 };
 
-class cfg::edge::impl
+class libir_cfg_block
 {
 public:
   virtual void unref () = 0;
+  virtual libir_stmt_iter *iter_phis () = 0;
+  virtual libir_stmt_iter *iter_stmts () = 0;
 };
 
-class stmt::impl
+class libir_cfg_edge
 {
 public:
   virtual void unref () = 0;
 };
 
-template<>
-class block_iter::impl
+class libir_stmt
 {
 public:
   virtual void unref () = 0;
-  virtual bool is_done () const = 0;
-  virtual cfg::block get_block () const = 0;
-  virtual void next () = 0;
 };
 
-template<>
-class stmt_iter::impl
+class libir_cfg_block_iter
 {
 public:
   virtual void unref () = 0;
   virtual bool is_done () const = 0;
-  virtual stmt get_stmt () const = 0;
+  virtual libir_cfg_block *get_block () const = 0;
   virtual void next () = 0;
 };
 
-class null_stmt_iter_impl : public stmt_iter::impl
+class libir_stmt_iter
+{
+public:
+  virtual void unref () = 0;
+  virtual bool is_done () const = 0;
+  virtual libir_stmt *get_stmt () const = 0;
+  virtual void next () = 0;
+};
+
+/* FIXME.  */
+class null_stmt_iter_impl : public libir_stmt_iter
 {
 public:
   static null_stmt_iter_impl *get() {return &s_singleton; }
 
   void unref () { /* empty; a singleton.  */ }
   bool is_done () const { return true; }
-  ir::stmt get_stmt () const { return 0; }
+  libir_stmt *get_stmt () const { return 0; }
   void next () { /* empty */ }
 
 private:
   static null_stmt_iter_impl s_singleton;
 };
-
-} // namespace ir
 
 #endif // #ifndef INCLUDED_LIBIR_IMPL_H

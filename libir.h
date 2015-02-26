@@ -20,105 +20,98 @@
 #ifndef INCLUDED_LIBIR_H
 #define INCLUDED_LIBIR_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 /* Forward declarations of types.  */
-namespace ir
-{
-  class function;
-  namespace cfg
-  {
-    class graph;
-    class block;
-    class edge;
-  };
-  class stmt;
-} // namespace ir
+typedef struct libir_function libir_function;
+typedef struct libir_cfg libir_cfg;
+typedef struct libir_cfg_block libir_cfg_block;
+typedef struct libir_cfg_edge libir_cfg_edge;
+typedef struct libir_stmt libir_stmt;
 
-namespace ir
-{
-template <class T>
-class iter
-{
-public:
-  class impl;
-  iter (impl *impl) : m_pimpl (impl) {}
-  ~iter ();
+typedef struct libir_cfg_block_iter libir_cfg_block_iter;
+typedef struct libir_stmt_iter libir_stmt_iter;
 
-  bool is_done () const;
-  T operator*() const;
-  void next ();
+/* Iterators typically have this API:
 
-private:
-  impl *m_pimpl;
-};
+   extern int
+   libir_FOO_iter_is_done (libir_FOO_iter *iter);
 
-typedef iter<cfg::block> block_iter;
-typedef iter<stmt>  stmt_iter;
+   extern libir_FOO *
+   libir_FOO_iter_current (libir_FOO_iter *iter);
 
-class function
-{
-public:
-  class impl;
-  function (impl *impl) : m_pimpl (impl) {}
-  ~function ();
+   extern void
+   libir_FOO_iter_next (libir_FOO_iter *iter);
 
-  cfg::graph get_cfg ();
+   extern void
+   libir_FOO_iter_unref (libir_FOO_iter *iter);
 
-private:
-  impl *m_pimpl;
-};
+*/
 
-class cfg::graph
-{
-public:
-  class impl;
-  graph (impl *impl) : m_pimpl (impl) {}
-  ~graph ();
+/* libir_function.  */
 
-  block_iter iter_blocks ();
+extern libir_cfg *
+libir_function_get_cfg (libir_function *fn);
 
-private:
-  impl *m_pimpl;
-};
+extern void
+libir_function_unref (libir_function *fn);
 
-class cfg::block
-{
-public:
-  class impl;
-  block (impl *impl) : m_pimpl (impl) {}
-  ~block ();
+/* libir_cfg.  */
 
-  stmt_iter iter_phis ();
-  stmt_iter iter_stmts ();
+extern void
+libir_cfg_unref (libir_cfg *cfg);
 
-private:
-  impl *m_pimpl;
-};
+/* libir_cfg_block.  */
 
-class cfg::edge
-{
-public:
-  class impl;
-  edge (impl *impl) : m_pimpl (impl) {}
-  ~edge ();
+extern void
+libir_cfg_block_unref (libir_cfg_block *block);
 
-  cfg::block get_src () const;
-  cfg::block get_dest () const;
+/* libir_stmt.  */
 
-private:
-  impl *m_pimpl;
-};
+extern void
+libir_stmt_unref (libir_stmt *stmt);
 
-class stmt
-{
-public:
-  class impl;
-  stmt (impl *impl) : m_pimpl (impl) {}
-  ~stmt ();
+/* libir_cfg_block_iter.  */
 
-private:
-  impl *m_pimpl;
-};
+extern libir_cfg_block_iter *
+libir_cfg_iter_blocks (libir_cfg *cfg);
 
-} // namespace ir
+extern int
+libir_cfg_block_iter_is_done (libir_cfg_block_iter *bi);
+
+extern libir_cfg_block *
+libir_cfg_block_iter_current (libir_cfg_block_iter *bi);
+
+extern void
+libir_cfg_block_iter_next (libir_cfg_block_iter *bi);
+
+extern void
+libir_cfg_block_iter_unref (libir_cfg_block_iter *bi);
+
+/* libir_cfg_stmt_iter.  */
+
+extern libir_stmt_iter *
+libir_cfg_block_iter_phis (libir_cfg_block *block);
+
+extern libir_stmt_iter *
+libir_cfg_block_iter_stmts (libir_cfg_block *block);
+
+extern int
+libir_stmt_iter_is_done (libir_stmt_iter *si);
+
+extern libir_stmt *
+libir_stmt_iter_current (libir_stmt_iter *si);
+
+extern void
+libir_stmt_iter_next (libir_stmt_iter *si);
+
+extern void
+libir_stmt_iter_unref (libir_stmt_iter *si);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif // #ifndef INCLUDED_LIBIR_H

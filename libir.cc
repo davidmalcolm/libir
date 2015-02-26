@@ -20,114 +20,108 @@
 #include "libir.h"
 #include "libir-impl.h"
 
-namespace ir {
-
-// ir::block_iter
-template<>
-block_iter::~iter ()
-{
-  m_pimpl->unref ();
-}
-
-template<>
-bool
-block_iter::is_done () const
-{
-  return m_pimpl->is_done ();
-}
-
-template<>
-cfg::block
-block_iter::operator*() const
-{
-  return m_pimpl->get_block ();
-}
-
-template<>
-void
-block_iter::next ()
-{
-  return m_pimpl->next ();
-}
-
-// ir::stmt_iter
-template<>
-stmt_iter::~iter ()
-{
-  m_pimpl->unref ();
-}
-
-template<>
-bool
-stmt_iter::is_done () const
-{
-  return m_pimpl->is_done ();
-}
-
-template<>
-stmt
-stmt_iter::operator*() const
-{
-  return m_pimpl->get_stmt ();
-}
-
-template<>
-void
-stmt_iter::next ()
-{
-  return m_pimpl->next ();
-}
-
-// ir::function
-
-function::~function ()
-{
-  m_pimpl->unref ();
-}
-
-cfg::graph
-function::get_cfg ()
-{
-  return m_pimpl->get_cfg ();
-}
-
-// class cfg::graph
-
-cfg::graph::~graph ()
-{
-  m_pimpl->unref ();
-}
-
-block_iter
-cfg::graph::iter_blocks ()
-{
-  return m_pimpl->iter_blocks ();
-}
-
-// class cfg::block
-cfg::block::~block ()
-{
-  m_pimpl->unref ();
-}
-
-stmt_iter
-cfg::block::iter_phis ()
-{
-  return m_pimpl->iter_phis ();
-}
-
-stmt_iter
-cfg::block::iter_stmts ()
-{
-  return m_pimpl->iter_stmts ();
-}
-
-// class stmt
-stmt::~stmt ()
-{
-  m_pimpl->unref ();
-}
+#include <assert.h>
 
 null_stmt_iter_impl null_stmt_iter_impl::s_singleton;
 
-} // namespace ir
+libir_cfg *
+libir_function_get_cfg (libir_function *fn)
+{
+  return fn->get_cfg ();
+}
+
+void
+libir_function_unref (libir_function *fn)
+{
+  fn->unref ();
+}
+
+void
+libir_cfg_unref (libir_cfg *cfg)
+{
+  cfg->unref ();
+}
+
+void
+libir_cfg_block_unref (libir_cfg_block *block)
+{
+  block->unref ();
+}
+
+void
+libir_stmt_unref (libir_stmt *stmt)
+{
+  stmt->unref ();
+}
+
+libir_cfg_block_iter *
+libir_cfg_iter_blocks (libir_cfg *cfg)
+{
+  return cfg->iter_blocks ();
+}
+
+extern int
+libir_cfg_block_iter_is_done (libir_cfg_block_iter *bi)
+{
+  return bi->is_done ();
+}
+
+libir_cfg_block *
+libir_cfg_block_iter_current (libir_cfg_block_iter *bi)
+{
+  return bi->get_block ();
+}
+
+void
+libir_cfg_block_iter_next (libir_cfg_block_iter *bi)
+{
+  bi->next ();
+}
+
+void
+libir_cfg_block_iter_unref (libir_cfg_block_iter *bi)
+{
+  bi->unref ();
+}
+
+/* libir_cfg_stmt_iter.  */
+
+libir_stmt_iter *
+libir_cfg_block_iter_phis (libir_cfg_block *block)
+{
+  return block->iter_phis ();
+}
+
+libir_stmt_iter *
+libir_cfg_block_iter_stmts (libir_cfg_block *block)
+{
+  return block->iter_stmts ();
+}
+
+extern int
+libir_stmt_iter_is_done (libir_stmt_iter *si)
+{
+  return si->is_done ();
+}
+
+libir_stmt *
+libir_stmt_iter_current (libir_stmt_iter *si)
+{
+  libir_stmt *stmt;
+  stmt = si->get_stmt ();
+  assert (stmt);
+  return stmt;
+}
+
+void
+libir_stmt_iter_next (libir_stmt_iter *si)
+{
+  si->next ();
+}
+
+void
+libir_stmt_iter_unref (libir_stmt_iter *si)
+{
+  si->unref ();
+}
+

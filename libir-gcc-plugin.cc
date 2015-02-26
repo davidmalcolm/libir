@@ -65,42 +65,42 @@
 
 /* Concrete implementation classes. */
 
-class gcc_function_impl : public ir::function::impl
+class gcc_function_impl : public libir_function
 {
 public:
   gcc_function_impl (struct function *inner);
   void unref ();
-  ir::cfg::graph get_cfg ();
+  libir_cfg *get_cfg ();
 
 private:
   struct function *m_inner;
 };
 
-class gcc_cfg_impl : public ir::cfg::graph::impl
+class gcc_cfg_impl : public libir_cfg
 {
 public:
   gcc_cfg_impl (struct control_flow_graph *inner);
   void unref ();
-  ir::block_iter iter_blocks ();
+  libir_cfg_block_iter *iter_blocks ();
 
 private:
   struct control_flow_graph *m_inner;
 };
 
-class gcc_block_impl : public ir::cfg::block::impl
+class gcc_block_impl : public libir_cfg_block
 {
 public:
   gcc_block_impl (basic_block inner);
 
   void unref ();
-  ir::stmt_iter iter_phis ();
-  ir::stmt_iter iter_stmts ();
+  libir_stmt_iter *iter_phis ();
+  libir_stmt_iter *iter_stmts ();
 
 private:
   basic_block m_inner;
 };
 
-class gimple_stmt_impl : public ir::stmt::impl
+class gimple_stmt_impl : public libir_stmt
 {
 public:
   gimple_stmt_impl (gimple inner);
@@ -110,7 +110,7 @@ private:
   gimple m_inner;
 };
 
-class rtl_stmt_impl : public ir::stmt::impl
+class rtl_stmt_impl : public libir_stmt
 {
 public:
   rtl_stmt_impl (rtx inner);
@@ -120,14 +120,14 @@ private:
   rtx m_inner;
 };
 
-class gcc_block_iter_impl : public ir::block_iter::impl
+class gcc_block_iter_impl : public libir_cfg_block_iter
 {
 public:
   gcc_block_iter_impl (struct control_flow_graph *inner);
 
   void unref ();
   bool is_done () const;
-  ir::cfg::block get_block () const;
+  libir_cfg_block *get_block () const;
   void next ();
 
 private:
@@ -144,28 +144,28 @@ private:
   int m_index;
 };
 
-class gimple_iter_impl : public ir::stmt_iter::impl
+class gimple_iter_impl : public libir_stmt_iter
 {
 public:
   gimple_iter_impl (gimple_seq seq);
 
   void unref ();
   bool is_done () const;
-  ir::stmt get_stmt () const;
+  libir_stmt *get_stmt () const;
   void next ();
 
 private:
   gimple_stmt_iterator m_gsi;
 };
 
-class rtl_iter_impl : public ir::stmt_iter::impl
+class rtl_iter_impl : public libir_stmt_iter
 {
 public:
   rtl_iter_impl (rtx insn);
 
   void unref ();
   bool is_done () const;
-  ir::stmt get_stmt () const;
+  libir_stmt *get_stmt () const;
   void next ();
 
 private:
@@ -174,7 +174,8 @@ private:
 
 /* Implementations */
 
-// class gcc_function_impl : public ir::function::impl
+/* class gcc_function_impl : public ir::function::impl.  */
+
 gcc_function_impl::gcc_function_impl (struct function *inner)
   : m_inner (inner)
 {
@@ -186,14 +187,15 @@ gcc_function_impl::unref ()
   delete this;
 }
 
-ir::cfg::graph
+libir_cfg *
 gcc_function_impl::get_cfg ()
 {
   gcc_assert (m_inner->cfg);
-  return ir::cfg::graph (new gcc_cfg_impl (m_inner->cfg));
+  return new gcc_cfg_impl (m_inner->cfg);
 }
 
-// class gcc_cfg_impl : public ir::cfg::graph::impl
+/* class gcc_cfg_impl : public ir::cfg::graph::impl.  */
+
 gcc_cfg_impl::gcc_cfg_impl (struct control_flow_graph *inner)
   : m_inner (inner)
 {
@@ -205,14 +207,14 @@ gcc_cfg_impl::unref ()
   delete this;
 }
 
-ir::block_iter
+libir_cfg_block_iter *
 gcc_cfg_impl::iter_blocks ()
 {
   gcc_assert (m_inner);
-  return ir::block_iter (new gcc_block_iter_impl (m_inner));
+  return new gcc_block_iter_impl (m_inner);
 }
 
-// class gcc_block_iter_impl : public ir::block_iter::impl
+/* class gcc_block_iter_impl : public libir_block_iter.  */
 
 gcc_block_iter_impl::gcc_block_iter_impl (struct control_flow_graph *inner)
   : m_inner (inner),
@@ -233,13 +235,15 @@ gcc_block_iter_impl::is_done () const
   return m_index >= m_inner->x_n_basic_blocks;
 }
 
-ir::cfg::block
+libir_cfg_block *
 gcc_block_iter_impl::get_block () const
 {
+  gcc_assert (!is_done ());
+
   basic_block bb = GCC_COMPAT_VEC_INDEX (basic_block,
                                          m_inner->x_basic_block_info,
                                          m_index);
-  return ir::cfg::block (new gcc_block_impl (bb));
+  return new gcc_block_impl (bb);
 }
 
 void
@@ -257,7 +261,7 @@ gcc_block_iter_impl::ensure_nonnull_block ()
     m_index++;
 }
 
-// class gimple_stmt_impl : public ir::stmt::impl
+/* class gimple_stmt_impl : public libir_stmt.  */
 
 gimple_stmt_impl::gimple_stmt_impl (gimple inner) :
   m_inner (inner)
@@ -270,7 +274,8 @@ gimple_stmt_impl::unref ()
   delete this;
 }
 
-// class rtl_stmt_impl : public ir::stmt::impl
+/* class rtl_stmt_impl : public libir_stmt.  */
+
 rtl_stmt_impl::rtl_stmt_impl (rtx inner) :
   m_inner (inner)
 {
@@ -282,7 +287,7 @@ rtl_stmt_impl::unref ()
   delete this;
 }
 
-// class gcc_block_impl : public ir::cfg::block::impl
+/* class gcc_block_impl : public libir_cfg_block.  */
 
 gcc_block_impl::gcc_block_impl (basic_block inner) :
   m_inner (inner)
@@ -319,24 +324,24 @@ checked_get_gimple_info (basic_block bb)
 #endif
 }
 
-ir::stmt_iter
+libir_stmt_iter *
 gcc_block_impl::iter_phis ()
 {
   struct gimple_bb_info *info;
   info = checked_get_gimple_info (m_inner);
 
   if (!info)
-    return ir::stmt_iter (ir::null_stmt_iter_impl::get());
+    return null_stmt_iter_impl::get();
 
-  return ir::stmt_iter (new gimple_iter_impl (info->phi_nodes));
+  return new gimple_iter_impl (info->phi_nodes);
 }
 
-ir::stmt_iter
+libir_stmt_iter *
 gcc_block_impl::iter_stmts ()
 {
   if (m_inner->flags & BB_RTL)
     {
-      return ir::stmt_iter (new rtl_iter_impl (m_inner->il.x.head_));
+      return new rtl_iter_impl (m_inner->il.x.head_);
     }
   else
     {
@@ -344,13 +349,13 @@ gcc_block_impl::iter_stmts ()
       info = checked_get_gimple_info (m_inner);
 
       if (!info)
-        return ir::stmt_iter (ir::null_stmt_iter_impl::get());
+        return null_stmt_iter_impl::get();
 
-      return ir::stmt_iter (new gimple_iter_impl (info->seq));
+      return new gimple_iter_impl (info->seq);
     }
 }
 
-// class gimple_iter_impl : public ir::stmt_iter::impl
+/* class gimple_iter_impl : public libir_stmt_iter.  */
 
 gimple_iter_impl::gimple_iter_impl (gimple_seq seq)
 {
@@ -369,11 +374,13 @@ gimple_iter_impl::is_done () const
   return gsi_end_p (m_gsi);
 }
 
-ir::stmt
+libir_stmt *
 gimple_iter_impl::get_stmt () const
 {
+  gcc_assert (!is_done ());
+
   gimple stmt = gsi_stmt (m_gsi);
-  return ir::stmt (new gimple_stmt_impl (stmt));
+  return new gimple_stmt_impl (stmt);
 }
 
 void
@@ -382,7 +389,8 @@ gimple_iter_impl::next ()
   gsi_next (&m_gsi);
 }
 
-// class rtl_iter_impl : public ir::stmt_iter::impl
+/* class rtl_iter_impl : public libir_stmt_iter.  */
+
 rtl_iter_impl::rtl_iter_impl (rtx insn) :
   m_insn (insn)
 {
@@ -397,13 +405,15 @@ rtl_iter_impl::unref ()
 bool
 rtl_iter_impl::is_done () const
 {
-  return NULL == m_insn;
+  return m_insn == NULL;
 }
 
-ir::stmt
+libir_stmt *
 rtl_iter_impl::get_stmt () const
 {
-  return ir::stmt (new rtl_stmt_impl (m_insn));
+  gcc_assert (!is_done ());
+
+  return new rtl_stmt_impl (m_insn);
 }
 
 void
@@ -412,9 +422,13 @@ rtl_iter_impl::next ()
   m_insn = NEXT_INSN (m_insn);
 }
 
+extern "C" {
+  libir_function *
+  cfun_as_ir_function ();
+}
 
-ir::function
+libir_function *
 cfun_as_ir_function ()
 {
-  return ir::function (new gcc_function_impl (cfun));
+  return new gcc_function_impl (cfun);
 }

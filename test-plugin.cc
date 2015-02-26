@@ -17,7 +17,7 @@
    <http://www.gnu.org/licenses/>.
 */
 
-#include "libir.h"
+#include "libir++.h"
 #include <stdio.h>
 
 /* This can be written purely using libir, without needing GCC headers: */
@@ -58,10 +58,10 @@ foo_test (ir::function fn)
 #include "tree-pass.h"
 #include "function.h"
 
-extern ir::function
-cfun_as_ir_function ();
-
 extern "C" {
+
+extern libir_function *
+cfun_as_ir_function ();
 
 int plugin_is_GPL_compatible;
 
@@ -80,7 +80,7 @@ callback (void *gcc_data, void *user_data)
     if (0==strcmp (pass->name, "veclower")
         || 0==strcmp (pass->name, "*rest_of_compilation"))
       {
-        printf ("cfun: %x\n", cfun);
+        printf ("cfun: %p\n", cfun);
 
         foo_test (cfun_as_ir_function ());
       }
