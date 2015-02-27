@@ -38,7 +38,7 @@ $(LIBIR_GCC_PLUGIN_SO): $(LIBIR_GCC_PLUGIN_OBJECT_FILES)
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -shared $^ -o $@ $(LIBS) -lstdc++ -Wall -Werror
 
 test-plugin.c.so: test-plugin.c libir.h $(LIBIR_SO) $(LIBIR_GCC_PLUGIN_SO)
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -shared  -xc++ test-plugin.c -o $@ $(LIBS) -lir -lir-gcc-plugin -L. -Wall -Werror
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -shared test-plugin.c -o $@ $(LIBS) -lir -lir-gcc-plugin -L. -Wall -Werror
 
 test-plugin.cc.so: test-plugin.cc libir.h $(LIBIR_SO) $(LIBIR_GCC_PLUGIN_SO)
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -shared test-plugin.cc -o $@ $(LIBS) -lir -lir-gcc-plugin -L. -Wall -Werror

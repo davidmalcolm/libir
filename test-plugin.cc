@@ -19,6 +19,7 @@
 
 #include "libir++.h"
 #include <stdio.h>
+#include <string.h>
 
 /* This can be written purely using libir, without needing GCC headers: */
 
@@ -53,49 +54,34 @@ foo_test (ir::function fn)
           num_blocks, num_phis, num_stmts);
 }
 
-/* FIXME: move the rest of this to a support library */
-#include <gcc-plugin.h>
-#include "tree-pass.h"
-#include "function.h"
-
 extern "C" {
-
-extern libir_function *
-cfun_as_ir_function ();
-
 int plugin_is_GPL_compatible;
-
-extern int
-plugin_init (struct plugin_name_args *plugin_info,
-             struct plugin_gcc_version *version) __attribute__((nonnull));
-}; // extern "C"
-
+}
 
 static void
-callback (void *gcc_data, void *user_data)
+callback (libir_pass *pass,
+          libir_function *fn,
+          void *user_data)
 {
-    struct opt_pass *pass = (struct opt_pass *)gcc_data;
-    printf ("callback called: %s\n", pass->name);
+  const char *pass_name = libir_pass_get_name (pass);
+  printf ("callback called: %s\n", pass_name);
 
-    if (0==strcmp (pass->name, "veclower")
-        || 0==strcmp (pass->name, "*rest_of_compilation"))
-      {
-        printf ("cfun: %p\n", cfun);
-
-        foo_test (cfun_as_ir_function ());
-      }
+  if (0==strcmp (pass_name, "veclower")
+      || 0==strcmp (pass_name, "*rest_of_compilation"))
+    {
+      foo_test (fn);
+    }
 }
 
 int
-plugin_init (struct plugin_name_args *plugin_info,
-             struct plugin_gcc_version *version)
+init_libir_plugin (libir_plugin_context *ctxt)
 {
   printf ("got here\n");
 
-  register_callback ("test-plugin",
-                     PLUGIN_PASS_EXECUTION,
-                     callback,
-                     NULL);
+  libir_plugin_context_register_callback (ctxt,
+                                          "test-plugin",
+                                          callback,
+                                          NULL);
 
   return 0;
 }

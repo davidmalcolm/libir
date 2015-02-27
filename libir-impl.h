@@ -80,6 +80,23 @@ public:
   virtual void next () = 0;
 };
 
+class libir_plugin_context
+{
+ public:
+  virtual void
+  register_callback (const char *name,
+                     void (*cb) (libir_pass *pass,
+                                 libir_function *fn,
+                                 void *user_data),
+                     void *user_data) = 0;
+};
+
+class libir_pass
+{
+ public:
+  virtual const char *get_name () const = 0;
+};
+
 /* FIXME.  */
 class null_stmt_iter_impl : public libir_stmt_iter
 {

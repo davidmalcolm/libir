@@ -43,6 +43,8 @@
 #include "opts.h"
 #include "rtl.h"
 
+#include "tree-pass.h"
+
 #include "libir-impl.h"
 
 /* Getting the length of a vector, returning 0 if it is NULL: */
@@ -170,6 +172,28 @@ public:
 
 private:
   rtx m_insn;
+};
+
+class gcc_plugin_context : public libir_plugin_context
+{
+ public:
+  void
+  register_callback (const char *name,
+                     void (*cb) (libir_pass *pass,
+                                 libir_function *fn,
+                                 void *user_data),
+                     void *user_data);
+};
+
+class gcc_pass : public libir_pass
+{
+public:
+  gcc_pass (opt_pass *impl): m_impl (impl) {}
+
+  const char *get_name () const { return m_impl->name; }
+
+private:
+  opt_pass *m_impl;
 };
 
 /* Implementations */
@@ -431,4 +455,60 @@ libir_function *
 cfun_as_ir_function ()
 {
   return new gcc_function_impl (cfun);
+}
+
+/* class gcc_plugin_context : public libir_plugin_context.  */
+
+void
+gcc_plugin_context::register_callback (const char *name,
+                                       void (*cb) (libir_pass *pass,
+                                                   libir_function *fn,
+                                                   void *user_data),
+                                       void *user_data)
+{
+  class callback {
+  public:
+    callback (void (*cb) (libir_pass *pass,
+                          libir_function *fn,
+                          void *user_data),
+              void *user_data)
+      : m_cb (cb),
+        m_user_data (user_data)
+    {}
+
+    /* Implements gcc's plugin_callback_func.  */
+    static void impl_for_gcc (void *gcc_data, void *user_data)
+    {
+      struct opt_pass *pass = (struct opt_pass *)gcc_data;
+      libir_pass *ir_pass = new gcc_pass (pass);
+      callback *self = reinterpret_cast <callback *> (user_data);
+      libir_function *fn = cfun_as_ir_function ();
+      self->m_cb (ir_pass, fn, self->m_user_data);
+    }
+
+  private:
+    void (*m_cb) (libir_pass *pass,
+                  libir_function *fn,
+                  void *user_data);
+    void *m_user_data;
+  };
+
+  ::register_callback (name,
+                       PLUGIN_PASS_EXECUTION,
+                       callback::impl_for_gcc,
+                       new callback (cb, user_data));
+}
+
+extern "C" {
+extern int
+plugin_init (struct plugin_name_args *plugin_info,
+             struct plugin_gcc_version *version) __attribute__((nonnull));
+};
+
+int
+plugin_init (struct plugin_name_args *plugin_info,
+             struct plugin_gcc_version *version)
+{
+  libir_plugin_context *ctxt = new class gcc_plugin_context ();
+  init_libir_plugin (ctxt);
 }

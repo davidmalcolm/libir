@@ -125,3 +125,19 @@ libir_stmt_iter_unref (libir_stmt_iter *si)
   si->unref ();
 }
 
+void
+libir_plugin_context_register_callback (libir_plugin_context *ctxt,
+                                        const char *name,
+                                        void (*cb) (libir_pass *pass,
+                                                    libir_function *fn,
+                                                    void *user_data),
+                                        void *user_data)
+{
+  ctxt->register_callback (name, cb, user_data);
+}
+
+const char *
+libir_pass_get_name (libir_pass *pass)
+{
+  return pass->get_name ();
+}

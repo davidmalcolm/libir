@@ -34,6 +34,9 @@ typedef struct libir_stmt libir_stmt;
 typedef struct libir_cfg_block_iter libir_cfg_block_iter;
 typedef struct libir_stmt_iter libir_stmt_iter;
 
+typedef struct libir_plugin_context libir_plugin_context;
+typedef struct libir_pass libir_pass;
+
 /* Iterators typically have this API:
 
    extern int
@@ -109,6 +112,22 @@ libir_stmt_iter_next (libir_stmt_iter *si);
 
 extern void
 libir_stmt_iter_unref (libir_stmt_iter *si);
+
+extern void
+libir_plugin_context_register_callback (libir_plugin_context *ctxt,
+                                        const char *name,
+                                        void (*cb) (libir_pass *pass,
+                                                    libir_function *fn,
+                                                    void *user_data),
+                                        void *user_data);
+
+extern const char *
+libir_pass_get_name (libir_pass *pass);
+
+
+/* To be implemented by plugins that use libir. */
+extern int
+init_libir_plugin (libir_plugin_context *ctxt);
 
 #ifdef __cplusplus
 }
