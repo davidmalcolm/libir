@@ -23,7 +23,7 @@ CPPFLAGS+= -I$(GCCPLUGINS_DIR)/include -I$(GCCPLUGINS_DIR)/include/c-family -I.
 CFLAGS+= -fPIC -g
 CXXFLAGS+= -fPIC -g
 
-all: run-test-plugin.cc $(LIBIR_SO) $(LIBIR_GCC_PLUGIN_SO) test-plugin.cc.so
+all: run-test-plugin.cc run-test-plugin.c $(LIBIR_SO) $(LIBIR_GCC_PLUGIN_SO)
 
 LIBIR_CC_FILES := libir.cc
 LIBIR_GCC_PLUGIN_CC_FILES := libir-gcc-plugin.cc
@@ -32,17 +32,24 @@ LIBIR_OBJECT_FILES := $(patsubst %.cc,%.o,$(LIBIR_CC_FILES))
 LIBIR_GCC_PLUGIN_OBJECT_FILES := $(patsubst %.cc,%.o,$(LIBIR_GCC_PLUGIN_CC_FILES))
 
 $(LIBIR_SO): $(LIBIR_OBJECT_FILES)
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -shared $^ -o $@ $(LIBS) -lstdc++
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -shared $^ -o $@ $(LIBS) -lstdc++ -Wall -Werror
 
 $(LIBIR_GCC_PLUGIN_SO): $(LIBIR_GCC_PLUGIN_OBJECT_FILES)
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -shared $^ -o $@ $(LIBS) -lstdc++
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -shared $^ -o $@ $(LIBS) -lstdc++ -Wall -Werror
+
+test-plugin.c.so: test-plugin.c libir.h $(LIBIR_SO) $(LIBIR_GCC_PLUGIN_SO)
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -shared  -xc++ test-plugin.c -o $@ $(LIBS) -lir -lir-gcc-plugin -L. -Wall -Werror
 
 test-plugin.cc.so: test-plugin.cc libir.h $(LIBIR_SO) $(LIBIR_GCC_PLUGIN_SO)
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -shared test-plugin.cc -o $@ $(LIBS) -lir -lir-gcc-plugin -L.
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -shared test-plugin.cc -o $@ $(LIBS) -lir -lir-gcc-plugin -L. -Wall -Werror
 
 .PHONY: clean
 clean:
 	rm *.so *.o
+
+.PHONY: run-test-plugin.c
+run-test-plugin.c: test-plugin.c.so
+	LD_LIBRARY_PATH=. gcc -c -fplugin=./test-plugin.c.so test.c
 
 .PHONY: run-test-plugin.cc
 run-test-plugin.cc: test-plugin.cc.so

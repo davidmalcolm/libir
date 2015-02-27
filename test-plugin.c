@@ -1,4 +1,4 @@
-/* Example plugin implemented in C++ using libir++.h bindings to libir.h
+/* Example plugin implemented in C using libir.h
    Copyright 2014-2015 David Malcolm <dmalcolm@redhat.com>
    Copyright 2014-2015 Red Hat, Inc.
 
@@ -17,42 +17,64 @@
    <http://www.gnu.org/licenses/>.
 */
 
-#include "libir++.h"
+#include "libir.h"
 #include <stdio.h>
 
-/* This can be written purely using libir, without needing GCC headers: */
+/* This can be written in C, purely using libir.h, without needing
+   GCC headers: */
 
 void
-foo_test (ir::function fn)
+foo_test (libir_function *fn)
 {
-  printf ("within foo_test\n");
   int num_blocks = 0;
   int num_phis = 0;
   int num_stmts = 0;
 
-  ir::cfg::graph cfg = fn.get_cfg ();
-  for (ir::block_iter bi = cfg.iter_blocks (); !bi.is_done (); bi.next ())
+  libir_cfg *cfg;
+  libir_cfg_block_iter *bi;
+
+  printf ("within foo_test\n");
+
+  cfg = libir_function_get_cfg (fn);
+  for (bi = libir_cfg_iter_blocks (cfg);
+       !libir_cfg_block_iter_is_done (bi);
+       libir_cfg_block_iter_next (bi))
     {
-      ir::cfg::block b = *bi;
+      libir_cfg_block *b = libir_cfg_block_iter_current (bi);
+      libir_stmt_iter *si;
+
       num_blocks++;
 
-      for (ir::stmt_iter si = b.iter_phis (); !si.is_done (); si.next ())
+      for (si = libir_cfg_block_iter_phis (b);
+           !libir_stmt_iter_is_done (si);
+           libir_stmt_iter_next (si))
         {
-          ir::stmt phi = *si;
+          libir_stmt *stmt = libir_stmt_iter_current (si);
           num_phis++;
+          libir_stmt_unref (stmt);
         }
+      libir_stmt_iter_unref (si);
 
-      for (ir::stmt_iter si = b.iter_stmts (); !si.is_done (); si.next ())
+      for (si = libir_cfg_block_iter_stmts (b);
+           !libir_stmt_iter_is_done (si);
+           libir_stmt_iter_next (si))
         {
-          ir::stmt s = *si;
+          libir_stmt *stmt = libir_stmt_iter_current (si);
           num_stmts++;
+          libir_stmt_unref (stmt);
         }
+      libir_stmt_iter_unref (si);
+
+      libir_cfg_block_unref (b);
     }
+  libir_cfg_block_iter_unref (bi);
+  libir_cfg_unref (cfg);
 
   printf ("num blocks: %i; num phis: %i; num stmts: %i\n",
           num_blocks, num_phis, num_stmts);
 }
 
+/* FIXME: the rest of this needs to be compiled as C++.  */
 /* FIXME: move the rest of this to a support library */
 #include <gcc-plugin.h>
 #include "tree-pass.h"
