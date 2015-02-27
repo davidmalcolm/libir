@@ -16,9 +16,11 @@ ASCII art diagram::
   |Uses no GCC headers    |         |"provider"               |
   +-----------------------+         +-------------------------+
                                                  |
-                                    +-------------------------+
-                                    |libir-gcc-plugin.cc      |
-                                    |                         |
-                                    |Implementation for GCC   |
-                                    |plugins                  |
+                                                 |--------------------------+
+                                                 |                          |
+                                    +-------------------------+  +-------------------------+
+                                    |libir-gcc-plugin.cc      |  |Other IR providers       |
+                                    |                         |  |                         |
+                                    |Implementation for GCC   |  |e.g. libgccjit           |
+                                    |plugins                  |  +-------------------------+
                                     +-------------------------+
