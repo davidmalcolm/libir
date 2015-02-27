@@ -1,5 +1,7 @@
 ASCII art diagram::
 
+  INTERFACE                         IMPLEMENTATION
+
   +-----------------------+
   |libir++.h              |
   |                       |
