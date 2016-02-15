@@ -65,6 +65,18 @@
     ( VEC_index(KIND, (V), (IDX) ) )
 #endif
 
+#if (GCC_VERSION >= 5000)
+typedef rtx_insn *rtx_insn_ptr;
+#else
+typedef rtx rtx_insn_ptr;
+#endif
+
+#if (GCC_VERSION >= 6000)
+typedef gimple *gimple_stmt_ptr;
+#else
+typedef gimple gimple_stmt_ptr;
+#endif
+
 /* Concrete implementation classes. */
 
 class gcc_function_impl : public libir_function
@@ -105,11 +117,11 @@ private:
 class gimple_stmt_impl : public libir_stmt
 {
 public:
-  gimple_stmt_impl (gimple inner);
+  gimple_stmt_impl (gimple_stmt_ptr inner);
   void unref ();
 
 private:
-  gimple m_inner;
+  gimple_stmt_ptr m_inner;
 };
 
 class rtl_stmt_impl : public libir_stmt
@@ -163,7 +175,7 @@ private:
 class rtl_iter_impl : public libir_stmt_iter
 {
 public:
-  rtl_iter_impl (rtx insn);
+  rtl_iter_impl (rtx_insn_ptr insn);
 
   void unref ();
   bool is_done () const;
@@ -287,7 +299,7 @@ gcc_block_iter_impl::ensure_nonnull_block ()
 
 /* class gimple_stmt_impl : public libir_stmt.  */
 
-gimple_stmt_impl::gimple_stmt_impl (gimple inner) :
+gimple_stmt_impl::gimple_stmt_impl (gimple_stmt_ptr inner) :
   m_inner (inner)
 {
 }
@@ -403,7 +415,7 @@ gimple_iter_impl::get_stmt () const
 {
   gcc_assert (!is_done ());
 
-  gimple stmt = gsi_stmt (m_gsi);
+  gimple_stmt_ptr stmt = gsi_stmt (m_gsi);
   return new gimple_stmt_impl (stmt);
 }
 
@@ -415,7 +427,7 @@ gimple_iter_impl::next ()
 
 /* class rtl_iter_impl : public libir_stmt_iter.  */
 
-rtl_iter_impl::rtl_iter_impl (rtx insn) :
+rtl_iter_impl::rtl_iter_impl (rtx_insn_ptr insn) :
   m_insn (insn)
 {
 }
