@@ -183,7 +183,7 @@ public:
   void next ();
 
 private:
-  rtx m_insn;
+  rtx_insn_ptr m_insn;
 };
 
 class gcc_plugin_context : public libir_plugin_context
