@@ -1,5 +1,5 @@
-#   Copyright 2014-2015 David Malcolm <dmalcolm@redhat.com>
-#   Copyright 2014-2015 Red Hat, Inc.
+#   Copyright 2014-2016 David Malcolm <dmalcolm@redhat.com>
+#   Copyright 2014-2016 Red Hat, Inc.
 #
 #   This is free software: you can redistribute it and/or modify it
 #   under the terms of the GNU General Public License as published by
@@ -49,13 +49,13 @@ clean:
 
 .PHONY: run-test-plugin.c
 run-test-plugin.c: test-plugin.c.so
-	LD_LIBRARY_PATH=. gcc -c -fplugin=./test-plugin.c.so test.c
+	LD_LIBRARY_PATH=. $(CC) -c -fplugin=./test-plugin.c.so test.c
 
 .PHONY: run-test-plugin.cc
 run-test-plugin.cc: test-plugin.cc.so
-	LD_LIBRARY_PATH=. gcc -c -fplugin=./test-plugin.cc.so test.c
+	LD_LIBRARY_PATH=. $(CC) -c -fplugin=./test-plugin.cc.so test.c
 
 .PHONY: debug-test-plugin.cc
 debug-test-plugin.cc: test-plugin.cc.so
-	LD_LIBRARY_PATH=. gcc -c -fplugin=./test-plugin.cc.so test.c \
+	LD_LIBRARY_PATH=. $(CC) -c -fplugin=./test-plugin.cc.so test.c \
 	  -wrapper gdb,--args
